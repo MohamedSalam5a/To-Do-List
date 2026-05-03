@@ -53,7 +53,7 @@ nav img{
 
 
 
-/* .edit-overlay {
+ .edit-overlay {
     display: none;
     position: fixed;
     top: 0;
@@ -133,7 +133,7 @@ nav img{
 }
 .btn-primary:hover {
     background-color: #3E1671;
-} */
+} 
 
 .valid{
     border:2px solid green;
