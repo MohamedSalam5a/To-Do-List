@@ -4,8 +4,18 @@ let taskBox = document.getElementById("tasks");
 let clearAll = document.getElementById("clearAll");
 let finishedTasks = document.getElementById("finishedTasks");
 let searchInput = document.getElementById("searchInput");
+let editOverlay = document.querySelector(".edit-overlay");
+let closeEdit = document.getElementById("closeEdit");
+let cancelEdit = document.getElementById("cancelEdit");
+let editTaskInput = document.getElementById("editTaskInput");
+let saveEdit = document.getElementById("saveEdit");
+let alertEdit = document.getElementById("alertEdit");
+let progressBar = document.getElementById("progressBar");
+let removeCheckedBtn = document.getElementById("removeCheckedBtn");
+let taskStatus = document.getElementById("taskStatus")
 let allData = [];
 let dataFinished = [];
+let currentIndex;
 
 if (localStorage.getItem("tasks") != null) {
   allData = JSON.parse(localStorage.getItem("tasks"));
@@ -17,7 +27,7 @@ if (localStorage.getItem("finishedTasks") != null) {
   displayFinishedTasks(dataFinished);
 }
 
-//even
+//event
 addTask.addEventListener("click", function () {
   addTaskData();
 });
@@ -27,9 +37,12 @@ clearAll.addEventListener("click", function () {
 
 searchInput.addEventListener("input", function () {
   display(allData);
-  
 });
 
+closeEdit.addEventListener("click", closeEditTask);
+cancelEdit.addEventListener("click", closeEditTask);
+saveEdit.addEventListener("click", saveData);
+removeCheckedBtn.addEventListener("click",removeCheckedAll);
 // function
 function addTaskData() {
   if (userInput.value.trim() === "") return;
@@ -53,6 +66,11 @@ function display(data) {
                                 <button   class="btn  check checkTasks" data-index = ${i} >                                   
                                     <i class="fa-solid fa-check"></i>
                                 </button>
+
+                                <button   class="btn edit" data-index = ${i} >                                   
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                
                                 <button class="btn delete" data-index = ${i}>
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
@@ -66,7 +84,7 @@ function display(data) {
 
   let checkTaskbtn = document.querySelectorAll(".checkTasks");
   for (let i = 0; i < checkTaskbtn.length; i++) {
-    checkTaskbtn[i].addEventListener("click", function () {
+    checkTaskbtn[i].addEventListener("click", function (e) {
       let indexCheck = e.currentTarget.dataset.index;
       checkTaskBox(indexCheck);
     });
@@ -80,6 +98,17 @@ function display(data) {
       deletTasks(indexDelete);
     });
   }
+
+  let edit = document.querySelectorAll(".edit");
+  for (let i = 0; i < edit.length; i++) {
+    edit[i].addEventListener("click", function (e) {
+      let indexedit = e.currentTarget.dataset.index;
+
+      editTasks(indexedit);
+    });
+  }
+
+  progressBarTask();
 }
 
 function clearInput() {
@@ -88,11 +117,8 @@ function clearInput() {
 
 function clearTask() {
   allData = [];
-  dataFinished = [];
   localStorage.removeItem("tasks");
-  localStorage.removeItem("finishedTasks");
   display(allData);
-  displayFinishedTasks(dataFinished);
 }
 
 function checkTaskBox(index) {
@@ -117,6 +143,7 @@ function displayFinishedTasks(data) {
   }
 
   finishedTasks.innerHTML = box;
+  progressBarTask();
 }
 
 function deletTasks(index) {
@@ -125,3 +152,51 @@ function deletTasks(index) {
   display(allData);
 }
 
+function editTasks(index) {
+  currentIndex = index;
+  editOverlay.classList.add("visible");
+
+  editTaskInput.value = allData[index];
+  editTaskInput.classList.add("text-light");
+}
+
+function saveData() {
+  if (editTaskInput.value === "") {
+    alertEdit.classList.remove("d-none");
+  } else {
+    allData.splice(currentIndex, 1, editTaskInput.value);
+    localStorage.setItem("tasks", JSON.stringify(allData));
+    display(allData);
+    closeEditTask();
+    progressBarTask();
+  }
+}
+
+function closeEditTask() {
+  editOverlay.classList.remove("visible");
+  alertEdit.classList.add("d-none");
+}
+
+function progressBarTask() {
+  let totalTask = allData.length + dataFinished.length;
+  let totalFinished = dataFinished.length;
+
+  if (totalTask === 0) {
+    progressBar.style.width = "0%";
+    progressBar.setAttribute("aria-valuenow", "0");
+    return;
+  }
+
+  let percentage = (totalFinished / totalTask) * 100;
+
+  progressBar.style.width = `${percentage}%`;
+  progressBar.setAttribute("aria-valuenow", percentage);
+  taskStatus.innerText =  ` ${totalFinished} of ${totalTask} tasks done `  
+}
+
+function removeCheckedAll() {
+  dataFinished = [];
+  localStorage.removeItem("finishedTasks");
+  displayFinishedTasks(dataFinished);
+  progressBarTask()
+}
